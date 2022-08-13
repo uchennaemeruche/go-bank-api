@@ -1,0 +1,26 @@
+
+version: "3"
+
+services:
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_DB: gobank
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgressql/data
+    networks:
+      - app-tier
+    ports:
+      - 5431:5432
+
+
+volumes:
+  postgres_data:
+
+networks:
+  app-tier:
+    driver: bridge
+    
