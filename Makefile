@@ -16,3 +16,10 @@ bash:
 migrate:
 	docker exec -it postgresdb psql -U postgres --dbname=go_simple_bank --file=/Users/emeruche/Practice/go-bank-api/db/migrations/000001_init_schema.up.sql 
 
+migrateup:
+	migrate -path db/migrations -database "postgresql://postgres:postgres@localhost:5432/go_simple_bank?sslmode=disable" -verbose up
+
+migratedown:
+	migrate -path db/migrations -database "postgresql://postgres:postgres@localhost:5432/go_simple_bank?sslmode=disable" -verbose down
+
+.PHONY:	postgres createdb dropdb psql bash migrate migrateup migratedown
