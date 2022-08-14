@@ -23,6 +23,6 @@ sqlc_init:
 	/Users/emeruche/go/bin/sqlc init
 
 sqlc_generate:
-	/Users/emeruche/go/bin/sqlc init
+	/Users/emeruche/go/bin/sqlc generate
 
-.PHONY:	postgres createdb dropdb psql bash migrateup migratedown sqlcinit
+.PHONY:	postgres createdb dropdb psql bash migrateup migratedown sqlcinit sqlc_generate
