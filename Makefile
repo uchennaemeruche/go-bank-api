@@ -10,3 +10,9 @@ dropdb:
 psql:
 	docker exec -it postgresdb psql -U postgres
 
+bash:
+	docker exec -it postgresdb bash
+
+migrate:
+	docker exec -it postgresdb psql -U postgres --dbname=go_simple_bank --file=/Users/emeruche/Practice/go-bank-api/db/migrations/000001_init_schema.up.sql 
+
