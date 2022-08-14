@@ -25,4 +25,7 @@ sqlc_init:
 sqlc_generate:
 	/Users/emeruche/go/bin/sqlc generate
 
+test:
+	go test -v -cover ./...
+
 .PHONY:	postgres createdb dropdb psql bash migrateup migratedown sqlcinit sqlc_generate
