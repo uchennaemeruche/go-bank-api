@@ -2,23 +2,23 @@
 version: "3"
 
 services:
-  db:
+  postgresdb:
     image: postgres
-    restart: always
+    # restart: always
     environment:
-      POSTGRES_DB: gobank
+      POSTGRES_DB: go_simple_bank
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     volumes:
-      - postgres_data:/var/lib/postgressql/data
+      - postgresdata:/var/lib/postgressql/pgdata
     networks:
       - app-tier
     ports:
-      - 5431:5432
+      - 5432:5432
 
 
 volumes:
-  postgres_data:
+  postgresdata:
 
 networks:
   app-tier:
