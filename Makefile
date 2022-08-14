@@ -4,3 +4,5 @@ postgres:
 createdb:
 	docker exec -it postgresdb createdb --username=postgres --owner=postgres go_simple_bank
 
+dropdb:
+	docker exec -it postgresdb dropdb --username=postgres go_simple_bank
