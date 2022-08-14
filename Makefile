@@ -19,7 +19,10 @@ migrateup:
 migratedown:
 	docker run -v /Users/emeruche/Practice/go-bank-api/db/migrations:/migrations --network host migrate/migrate -path=/migrations/ -database "postgresql://postgres:postgres@localhost:5432/go_simple_bank?sslmode=disable" down 1
 
-sqlc:
-	sqlc generate
+sqlc_init:
+	/Users/emeruche/go/bin/sqlc init
 
-.PHONY:	postgres createdb dropdb psql bash migrateup migratedown sqlc
+sqlc_generate:
+	/Users/emeruche/go/bin/sqlc init
+
+.PHONY:	postgres createdb dropdb psql bash migrateup migratedown sqlcinit
