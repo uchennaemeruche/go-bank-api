@@ -6,3 +6,7 @@ createdb:
 
 dropdb:
 	docker exec -it postgresdb dropdb --username=postgres go_simple_bank
+
+psql:
+	docker exec -it postgresdb psql -U postgres
+
