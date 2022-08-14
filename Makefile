@@ -13,13 +13,13 @@ psql:
 bash:
 	docker exec -it postgresdb bash
 
-migrate:
-	docker exec -it postgresdb psql -U postgres --dbname=go_simple_bank --file=/Users/emeruche/Practice/go-bank-api/db/migrations/000001_init_schema.up.sql 
-
 migrateup:
-	migrate -path db/migrations -database "postgresql://postgres:postgres@localhost:5432/go_simple_bank?sslmode=disable" -verbose up
+	docker run -v /Users/emeruche/Practice/go-bank-api/db/migrations:/migrations --network host migrate/migrate -path=/migrations/ -database "postgresql://postgres:postgres@localhost:5432/go_simple_bank?sslmode=disable" up
 
 migratedown:
-	migrate -path db/migrations -database "postgresql://postgres:postgres@localhost:5432/go_simple_bank?sslmode=disable" -verbose down
+	docker run -v /Users/emeruche/Practice/go-bank-api/db/migrations:/migrations --network host migrate/migrate -path=/migrations/ -database "postgresql://postgres:postgres@localhost:5432/go_simple_bank?sslmode=disable" down 1
 
-.PHONY:	postgres createdb dropdb psql bash migrate migrateup migratedown
+sqlc:
+	sqlc generate
+
+.PHONY:	postgres createdb dropdb psql bash migrateup migratedown sqlc
