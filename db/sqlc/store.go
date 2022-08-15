@@ -72,7 +72,7 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 			return err
 		}
 
-		// 2. Add Account Transaction
+		// 2. Add Account Transaction entry 1
 		result.FromTransaction, err = q.CreateTransaction(ctx, CreateTransactionParams{
 			AccountID: arg.FromAccountID,
 			Amount:    -arg.Amount,
@@ -81,6 +81,7 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 			return err
 		}
 
+		// 2. Add Account Transaction counter entry 2
 		result.ToTransaction, err = q.CreateTransaction(ctx, CreateTransactionParams{
 			AccountID: arg.ToAccountId,
 			Amount:    arg.Amount,
@@ -88,6 +89,8 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 		if err != nil {
 			return err
 		}
+
+		// Update Account balance
 
 		return nil
 
