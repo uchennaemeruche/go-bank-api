@@ -52,7 +52,7 @@ func TestTransferTx(t *testing.T) {
 		_, err = store.GetTransfer(context.Background(), transfer.ID)
 		require.NoError(t, err)
 
-		// Check Transactions
+		// Check
 		fromTnx := result.FromTransaction
 		require.NotEmpty(t, fromTnx)
 		require.Equal(t, sender.ID, fromTnx.AccountID)
@@ -73,7 +73,24 @@ func TestTransferTx(t *testing.T) {
 		_, err = store.GetTransaction(context.Background(), toTnx.ID)
 		require.NoError(t, err)
 
+		// check accounts
+		fromAccount := result.FromAccount
+		require.NotEmpty(t, fromAccount)
+		require.Equal(t, sender.ID, fromAccount.ID)
+
+		toAccount := result.ToAccount
+		require.NotEmpty(t, toAccount)
+		require.Equal(t, recipient.ID, toAccount.ID)
+
 		// TODO: Check account Balance
+		diff1 := sender.Balance - fromAccount.Balance
+		diff2 := toAccount.Balance - recipient.Balance
+		require.Equal(t, diff1, diff2)
+		require.True(t, diff1 > 0)
+		require.True(t, diff1%amount == 0)
+
+		k := int(diff1 / amount)
+		require.True(t, k >= 1 && k <= n)
 
 	}
 
