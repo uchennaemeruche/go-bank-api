@@ -6,7 +6,10 @@ import (
 	"fmt"
 )
 
+// Store provides all functions to run DB queries individually and withing a transaction
 type Store struct {
+	// Composition: a preferred way of extending struct functionality. By embedding Queries in Store struct, all individual query functions provided by Queries will be available to Store.
+	// Moreso, we can define new functions for Store struct
 	*Queries
 	db *sql.DB
 }
@@ -50,7 +53,7 @@ type TransferTxResult struct {
 	ToTransaction   Transaction `json:"to_transaction"`
 }
 
-// TransferTx performs money trasnfer from one account to another using the below steps.
+// TransferTx performs money transfer from one account to another using the below steps.
 // 1. Create a Transfer record
 // 2. Add Account Transactions
 // 3. Update Account balance
