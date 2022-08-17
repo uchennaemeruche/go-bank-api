@@ -15,7 +15,7 @@ func TestTransferTx(t *testing.T) {
 	recipient := createRandomAccount(t)
 
 	// Run n concurrent transfer transactions
-	n := 10
+	n := 6
 	amount := int64(10)
 
 	errs := make(chan error)
@@ -79,22 +79,16 @@ func TestTransferTx(t *testing.T) {
 
 		// check accounts
 		fromAccount := result.FromAccount
-		fmt.Println("ACCOUNT CHECK: FROM RESULT ", fromAccount.ID, "BALANCE:", fromAccount.Balance)
-		fmt.Println("ACCOUNT CHECK: SENDER", sender.ID, "Balance:", sender.Balance)
 		require.NotEmpty(t, fromAccount)
 		require.Equal(t, sender.ID, fromAccount.ID)
 
 		toAccount := result.ToAccount
-		fmt.Println("ACCOUNT CHECK: TO RESULT ", toAccount.ID, "BALANCE:", toAccount.Balance)
-		fmt.Println("ACCOUNT CHECK: RECEIVER", recipient.ID, "Blance:", recipient.Balance)
 		require.NotEmpty(t, toAccount)
 		require.Equal(t, recipient.ID, toAccount.ID)
 
 		// TODO: Check account Balance
 		diff1 := sender.Balance - fromAccount.Balance
-		fmt.Println("DIFF:", diff1)
 		diff2 := toAccount.Balance - recipient.Balance
-		fmt.Println("DIFF 2:", diff2)
 		require.Equal(t, diff1, diff2)
 		require.True(t, diff1 > 0)
 		require.True(t, diff1%amount == 0)
