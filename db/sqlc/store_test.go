@@ -13,7 +13,7 @@ func TestTransferTx(t *testing.T) {
 	sender := createRandomAccount(t)
 	recipient := createRandomAccount(t)
 
-	// Run a concurrent transfer transactions
+	// Run n concurrent transfer transactions
 	n := 5
 	amount := int64(10)
 
