@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -14,15 +15,17 @@ func TestTransferTx(t *testing.T) {
 	recipient := createRandomAccount(t)
 
 	// Run n concurrent transfer transactions
-	n := 5
+	n := 10
 	amount := int64(10)
 
 	errs := make(chan error)
 	results := make(chan TransferTxResult)
 
 	for i := 0; i < n; i++ {
+		txName := fmt.Sprintf("tx %d", i+1)
 		go func() {
-			result, err := store.TransferTx(context.Background(), TransferTxParams{
+			ctx := context.WithValue(context.Background(), txKey, txName)
+			result, err := store.TransferTx(ctx, TransferTxParams{
 				FromAccountID: sender.ID,
 				ToAccountId:   recipient.ID,
 				Amount:        amount,
@@ -33,6 +36,7 @@ func TestTransferTx(t *testing.T) {
 	}
 
 	// Write Tests for Results
+	existed := make(map[int]bool)
 	for i := 0; i < n; i++ {
 		err := <-errs
 		require.NoError(t, err)
@@ -75,16 +79,22 @@ func TestTransferTx(t *testing.T) {
 
 		// check accounts
 		fromAccount := result.FromAccount
+		fmt.Println("ACCOUNT CHECK: FROM RESULT ", fromAccount.ID, "BALANCE:", fromAccount.Balance)
+		fmt.Println("ACCOUNT CHECK: SENDER", sender.ID, "Balance:", sender.Balance)
 		require.NotEmpty(t, fromAccount)
 		require.Equal(t, sender.ID, fromAccount.ID)
 
 		toAccount := result.ToAccount
+		fmt.Println("ACCOUNT CHECK: TO RESULT ", toAccount.ID, "BALANCE:", toAccount.Balance)
+		fmt.Println("ACCOUNT CHECK: RECEIVER", recipient.ID, "Blance:", recipient.Balance)
 		require.NotEmpty(t, toAccount)
 		require.Equal(t, recipient.ID, toAccount.ID)
 
 		// TODO: Check account Balance
 		diff1 := sender.Balance - fromAccount.Balance
+		fmt.Println("DIFF:", diff1)
 		diff2 := toAccount.Balance - recipient.Balance
+		fmt.Println("DIFF 2:", diff2)
 		require.Equal(t, diff1, diff2)
 		require.True(t, diff1 > 0)
 		require.True(t, diff1%amount == 0)
@@ -92,6 +102,19 @@ func TestTransferTx(t *testing.T) {
 		k := int(diff1 / amount)
 		require.True(t, k >= 1 && k <= n)
 
+		require.NotContains(t, existed, k)
+		existed[k] = true
+
 	}
+
+	// Check the final update balances of two accounts.
+	updatedSenderAcct, err := testQueries.GetAccount(context.Background(), sender.ID)
+	require.NoError(t, err)
+
+	updatedRecipientAcct, err := testQueries.GetAccount(context.Background(), recipient.ID)
+	require.NoError(t, err)
+
+	require.Equal(t, sender.Balance-int64(n)*amount, updatedSenderAcct.Balance)
+	require.Equal(t, recipient.Balance+int64(n)*amount, updatedRecipientAcct.Balance)
 
 }
