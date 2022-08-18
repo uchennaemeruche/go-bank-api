@@ -41,7 +41,7 @@ func TestGetAccount(t *testing.T) {
 	require.NotEmpty(t, res)
 
 	require.Equal(t, account.ID, res.ID)
-	require.Equal(t, account.Owner, res.Owner)
+	require.Equal(t, account.Owner, res.ID)
 	require.Equal(t, account.Balance, res.Balance)
 	require.Equal(t, account.Currency, res.Currency)
 	require.WithinDuration(t, account.CreatedAt, res.CreatedAt, time.Second)
