@@ -24,7 +24,7 @@ func NewServer(store db.Store) *Server {
 	handler := handler.NewAccountHandler(accountService)
 
 	router.GET("/accounts/:id", handler.GetAccount)
-	router.GET("/accounts", handler.CreateAccount)
+	router.GET("/accounts", handler.ListAccount)
 	router.POST("/accounts", handler.CreateAccount)
 
 	server.router = router
