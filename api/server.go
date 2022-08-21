@@ -2,8 +2,7 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/uchennaemeruche/go-bank-api/account/handler"
-	"github.com/uchennaemeruche/go-bank-api/account/service"
+	accountRoutes "github.com/uchennaemeruche/go-bank-api/account/routes"
 	db "github.com/uchennaemeruche/go-bank-api/db/sqlc"
 )
 
@@ -19,13 +18,7 @@ func NewServer(store db.Store) *Server {
 
 	router := gin.Default()
 
-	accountService := service.NewAccountService(server.store)
-
-	handler := handler.NewAccountHandler(accountService)
-
-	router.GET("/accounts/:id", handler.GetAccount)
-	router.GET("/accounts", handler.ListAccount)
-	router.POST("/accounts", handler.CreateAccount)
+	accountRoutes.Init(router, server.store)
 
 	server.router = router
 
