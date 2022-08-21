@@ -74,7 +74,6 @@ func (h *handler) ListAccount(ctx *gin.Context) {
 	var input entity.ListAccountReq
 
 	if err := ctx.ShouldBindQuery(&input); err != nil {
-
 		ctx.JSON(http.StatusBadRequest, util.ErrorResponse(err))
 		return
 	}
