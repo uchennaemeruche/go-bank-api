@@ -72,8 +72,11 @@ func (h *handler) CreateAccount(ctx *gin.Context) {
 
 func (h *handler) ListAccount(ctx *gin.Context) {
 	var input entity.ListAccountReq
-
 	if err := ctx.ShouldBindQuery(&input); err != nil {
+		if strings.Contains(err.Error(), "strconv.ParseInt") {
+			ctx.JSON(http.StatusBadRequest, util.ErrorResponse(errors.New("you passed strings instead of numbers")))
+			return
+		}
 		ctx.JSON(http.StatusBadRequest, util.ErrorResponse(err))
 		return
 	}
