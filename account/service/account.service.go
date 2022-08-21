@@ -14,6 +14,8 @@ type AccountService interface {
 	Create(owner, currency string) (db.Account, error)
 	GetOne(id int64) (db.Account, error)
 	ListAccount(pageSize, pageId int32) ([]db.Account, error)
+	UpdateAccount(id, balance int64) (db.Account, error)
+	DeleteAccount(id int64) error
 }
 
 type service struct {
@@ -58,4 +60,17 @@ func (s *service) ListAccount(pageSize, pageId int32) (accounts []db.Account, er
 		Offset: (pageId - 1) * pageSize,
 	}
 	return s.store.ListAccounts(context.Background(), arg)
+}
+
+func (s *service) UpdateAccount(id, balance int64) (db.Account, error) {
+	arg := db.UpdateAccountParams{
+		ID:      id,
+		Balance: balance,
+	}
+	return s.store.UpdateAccount(context.Background(), arg)
+}
+
+func (s *service) DeleteAccount(id int64) error {
+	return s.store.DeleteAccount(context.Background(), id)
+
 }
