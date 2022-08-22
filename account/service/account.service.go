@@ -19,10 +19,10 @@ type AccountService interface {
 }
 
 type service struct {
-	store *db.Store
+	store db.Store
 }
 
-func NewAccountService(store *db.Store) AccountService {
+func NewAccountService(store db.Store) AccountService {
 	return &service{
 		store: store,
 	}
