@@ -7,7 +7,7 @@ import (
 	db "github.com/uchennaemeruche/go-bank-api/db/sqlc"
 )
 
-func Init(router *gin.Engine, store *db.Store) {
+func Init(router *gin.Engine, store db.Store) {
 
 	r := router.Group("/accounts")
 
