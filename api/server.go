@@ -7,24 +7,25 @@ import (
 )
 
 type Server struct {
-	// store  db.Store
-	router *gin.Engine
+	store  db.Store
+	Router *gin.Engine
 }
 
 func NewServer(store db.Store) *Server {
 	server := &Server{
-		// store: store,
+		store: store,
 	}
 
 	router := gin.Default()
 
 	accountRoutes.Init(router, store)
 
-	server.router = router
+	server.Router = router
 
 	return server
 }
 
 func (s *Server) Start(addr string) {
-	s.router.Run(addr)
+	s.Router.Run(addr)
+
 }
