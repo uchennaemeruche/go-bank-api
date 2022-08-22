@@ -6,22 +6,27 @@ import (
 	"fmt"
 )
 
+type Store interface {
+	Querier
+	TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error)
+}
+
 // Store provides all functions to run DB queries individually and withing a transaction
-type Store struct {
+type SQLStore struct {
 	// Composition: a preferred way of extending struct functionality. By embedding Queries in Store struct, all individual query functions provided by Queries will be available to Store.
 	// Moreso, we can define new functions for Store struct
 	*Queries
 	db *sql.DB
 }
 
-func NewStore(db *sql.DB) *Store {
-	return &Store{
+func NewStore(db *sql.DB) Store {
+	return &SQLStore{
 		db:      db,
 		Queries: New(db),
 	}
 }
 
-func (store *Store) execTx(ctx context.Context, fn func(*Queries) error) error {
+func (store *SQLStore) execTx(ctx context.Context, fn func(*Queries) error) error {
 	tx, err := store.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -61,7 +66,7 @@ var txKey = struct{}{}
 // 3. Update Account balance
 // All within a single transaction
 
-func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
+func (store *SQLStore) TransferTx(ctx context.Context, arg TransferTxParams) (TransferTxResult, error) {
 	var result TransferTxResult
 
 	err := store.execTx(ctx, func(q *Queries) error {
