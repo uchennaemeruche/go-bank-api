@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/uchennaemeruche/go-bank-api/account/entity"
 	"github.com/uchennaemeruche/go-bank-api/account/service"
-	"github.com/uchennaemeruche/go-bank-api/api/util"
+	api "github.com/uchennaemeruche/go-bank-api/api/util"
 )
 
 type AccountHandler interface {
@@ -35,21 +35,21 @@ func (h *handler) GetAccount(ctx *gin.Context) {
 
 	if err := ctx.ShouldBindUri(&uri); err != nil {
 		if strings.Contains(err.Error(), "strconv.ParseInt") {
-			ctx.JSON(http.StatusBadRequest, util.ErrorResponse(errors.New("string not allowed")))
+			ctx.JSON(http.StatusBadRequest, api.ErrorResponse(errors.New("string not allowed")))
 			return
 		}
-		ctx.JSON(http.StatusBadRequest, util.ErrorResponse(err))
+		ctx.JSON(http.StatusBadRequest, api.ErrorResponse(err))
 		return
 	}
 
 	account, err := h.service.GetOne(uri.ID)
 	if err != nil {
-		if err.(*util.RequestError).Code == 404 {
-			ctx.JSON(http.StatusNotFound, util.ErrorResponse(err))
+		if err.(*api.RequestError).Code == 404 {
+			ctx.JSON(http.StatusNotFound, api.ErrorResponse(err))
 			return
 		}
 
-		ctx.JSON(http.StatusInternalServerError, util.ErrorResponse(err))
+		ctx.JSON(http.StatusInternalServerError, api.ErrorResponse(err))
 		return
 	}
 
@@ -58,13 +58,13 @@ func (h *handler) GetAccount(ctx *gin.Context) {
 func (h *handler) CreateAccount(ctx *gin.Context) {
 	var input entity.CreateAccountReq
 	if err := ctx.ShouldBindJSON(&input); err != nil {
-		ctx.JSON(http.StatusBadRequest, util.ErrorResponse(err))
+		ctx.JSON(http.StatusBadRequest, api.ErrorResponse(err))
 		return
 	}
 
 	account, err := h.service.Create(input.Owner, input.Currency)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, util.ErrorResponse(err))
+		ctx.JSON(http.StatusInternalServerError, api.ErrorResponse(err))
 		return
 	}
 
@@ -76,16 +76,16 @@ func (h *handler) ListAccount(ctx *gin.Context) {
 	var input entity.ListAccountReq
 	if err := ctx.ShouldBindQuery(&input); err != nil {
 		if strings.Contains(err.Error(), "strconv.ParseInt") {
-			ctx.JSON(http.StatusBadRequest, util.ErrorResponse(errors.New("you passed strings instead of numbers")))
+			ctx.JSON(http.StatusBadRequest, api.ErrorResponse(errors.New("you passed strings instead of numbers")))
 			return
 		}
-		ctx.JSON(http.StatusBadRequest, util.ErrorResponse(err))
+		ctx.JSON(http.StatusBadRequest, api.ErrorResponse(err))
 		return
 	}
 
 	accounts, err := h.service.ListAccount(input.PageSize, input.PageId)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, util.ErrorResponse(err))
+		ctx.JSON(http.StatusInternalServerError, api.ErrorResponse(err))
 		return
 	}
 
@@ -98,31 +98,31 @@ func (h *handler) UpdateAccount(ctx *gin.Context) {
 
 	if err := ctx.ShouldBindUri(&uri); err != nil {
 		if strings.Contains(err.Error(), "strconv.ParseInt") {
-			ctx.JSON(http.StatusBadRequest, util.ErrorResponse(errors.New("string not allowed")))
+			ctx.JSON(http.StatusBadRequest, api.ErrorResponse(errors.New("string not allowed")))
 			return
 		}
-		ctx.JSON(http.StatusBadRequest, util.ErrorResponse(err))
+		ctx.JSON(http.StatusBadRequest, api.ErrorResponse(err))
 		return
 	}
 
 	if err := ctx.ShouldBindJSON(&input); err != nil {
 		if strings.Contains(err.Error(), "strconv.ParseInt") {
-			ctx.JSON(http.StatusBadRequest, util.ErrorResponse(errors.New("string not allowed")))
+			ctx.JSON(http.StatusBadRequest, api.ErrorResponse(errors.New("string not allowed")))
 			return
 		}
-		ctx.JSON(http.StatusBadRequest, util.ErrorResponse(err))
+		ctx.JSON(http.StatusBadRequest, api.ErrorResponse(err))
 		return
 	}
 
 	account, err := h.service.UpdateAccount(uri.ID, input.Balance)
 
 	if err != nil {
-		if err.(*util.RequestError).Code == 404 {
-			ctx.JSON(http.StatusNotFound, util.ErrorResponse(err))
+		if err.(*api.RequestError).Code == 404 {
+			ctx.JSON(http.StatusNotFound, api.ErrorResponse(err))
 			return
 		}
 
-		ctx.JSON(http.StatusInternalServerError, util.ErrorResponse(err))
+		ctx.JSON(http.StatusInternalServerError, api.ErrorResponse(err))
 		return
 	}
 
@@ -134,16 +134,16 @@ func (h *handler) DeleteAccount(ctx *gin.Context) {
 
 	if err := ctx.ShouldBindUri(&uri); err != nil {
 		if strings.Contains(err.Error(), "strconv.ParseInt") {
-			ctx.JSON(http.StatusBadRequest, util.ErrorResponse(errors.New("string not allowed")))
+			ctx.JSON(http.StatusBadRequest, api.ErrorResponse(errors.New("string not allowed")))
 			return
 		}
-		ctx.JSON(http.StatusBadRequest, util.ErrorResponse(err))
+		ctx.JSON(http.StatusBadRequest, api.ErrorResponse(err))
 		return
 	}
 
 	err := h.service.DeleteAccount(uri.ID)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, util.ErrorResponse(err))
+		ctx.JSON(http.StatusInternalServerError, api.ErrorResponse(err))
 		return
 	}
 
