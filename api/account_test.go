@@ -123,32 +123,60 @@ func TestGetAccountApi(t *testing.T) {
 func TestCreateAccountApi(t *testing.T) {
 	account := randomAccount()
 
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	store := mockdb.NewMockStore(ctrl)
-	arg := db.CreateAccountParams{
-		Owner:    account.Owner,
-		Balance:  0,
-		Currency: account.Currency,
+	testCases := []struct {
+		name          string
+		body          gin.H
+		buildStubs    func(store *mockdb.MockStore)
+		checkResponse func(recorder *httptest.ResponseRecorder)
+	}{
+		{
+			name: "OK",
+			body: gin.H{"currency": account.Currency, "owner": account.Owner},
+			buildStubs: func(store *mockdb.MockStore) {
+				arg := db.CreateAccountParams{
+					Owner:    account.Owner,
+					Balance:  0,
+					Currency: account.Currency,
+				}
+				store.EXPECT().
+					CreateAccount(gomock.Any(), gomock.Eq(arg)).
+					Times(1).
+					Return(account, nil)
+			},
+			checkResponse: func(recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusOK, recorder.Code)
+				requireBodyMatchAccount(t, recorder.Body, account)
+			},
+		},
 	}
-	store.EXPECT().
-		CreateAccount(gomock.Any(), gomock.Eq(arg)).
-		Times(1).
-		Return(account, nil)
 
-	// Start a test httpserver
-	server := NewServer(store)
-	recorder := httptest.NewRecorder()
+	for i := range testCases {
+		tc := testCases[i]
 
-	data, err := json.Marshal(gin.H{"currency": account.Currency, "owner": account.Owner})
-	require.NoError(t, err)
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
 
-	request, err := http.NewRequest("POST", "/accounts", bytes.NewReader(data))
-	require.NoError(t, err)
+			store := mockdb.NewMockStore(ctrl)
+			// build stubs for the mockstore
+			tc.buildStubs(store)
 
-	server.Router.ServeHTTP(recorder, request)
-	require.Equal(t, http.StatusOK, recorder.Code)
+			// Start a test httpserver
+			server := NewServer(store)
+			recorder := httptest.NewRecorder()
+
+			data, err := json.Marshal(tc.body)
+			require.NoError(t, err)
+
+			request, err := http.NewRequest("POST", "/accounts", bytes.NewReader(data))
+			require.NoError(t, err)
+
+			server.Router.ServeHTTP(recorder, request)
+			tc.checkResponse(recorder)
+		})
+
+	}
+
 }
 
 func randomAccount() db.Account {
