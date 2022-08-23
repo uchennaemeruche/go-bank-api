@@ -41,7 +41,6 @@ func (s *service) ValidAccount(accountId int64, currency string) (account db.Acc
 			Code: 404,
 			Err:  fmt.Errorf("invalid account number: %d ", accountId),
 		}
-		// err = errors.New("no record found with the given ID")
 	}
 
 	return account, err
