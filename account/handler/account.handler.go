@@ -64,6 +64,11 @@ func (h *handler) CreateAccount(ctx *gin.Context) {
 
 	account, err := h.service.Create(input.Owner, input.Currency, input.AccountType)
 	if err != nil {
+		if err.(*api.RequestError).Code == 403 {
+			ctx.JSON(http.StatusForbidden, api.ErrorResponse(err))
+			return
+		}
+
 		ctx.JSON(http.StatusInternalServerError, api.ErrorResponse(err))
 		return
 	}
