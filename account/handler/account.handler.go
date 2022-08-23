@@ -62,7 +62,7 @@ func (h *handler) CreateAccount(ctx *gin.Context) {
 		return
 	}
 
-	account, err := h.service.Create(input.Owner, input.Currency)
+	account, err := h.service.Create(input.Owner, input.Currency, input.AccountType)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, api.ErrorResponse(err))
 		return
