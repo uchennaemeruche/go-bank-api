@@ -7,7 +7,7 @@ type Account struct {
 
 type CreateAccountReq struct {
 	Owner    string `json:"owner" binding:"required"`
-	Currency string `json:"currency" binding:"required,oneof= NGN USD EUR"`
+	Currency string `json:"currency" binding:"required,currency"`
 }
 
 type GetAccountReq struct {
