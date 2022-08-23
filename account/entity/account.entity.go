@@ -6,8 +6,9 @@ type Account struct {
 }
 
 type CreateAccountReq struct {
-	Owner    string `json:"owner" binding:"required"`
-	Currency string `json:"currency" binding:"required,currency"`
+	Owner       string `json:"owner" binding:"required"`
+	Currency    string `json:"currency" binding:"required,currency"`
+	AccountType string `json:"account_type" binding:"required,oneof=Savings Current"`
 }
 
 type GetAccountReq struct {
