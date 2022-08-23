@@ -10,6 +10,7 @@ CREATE TABLE "users" (
 ALTER TABLE "accounts" ADD COLUMN account_type varchar NOT NULL; 
 ALTER TABLE "accounts" ADD FOREIGN KEY ("owner") REFERENCES "users" ("username");
 
-CREATE UNIQUE INDEX ON "accounts" ("owner", "account_type");
+-- CREATE UNIQUE INDEX ON "accounts" ("owner", "account_type");
 -- CREATE UNIQUE INDEX ON "accounts" ("owner", "currency");
 ALTER TABLE "accounts" ADD CONSTRAINT "owner_currency_key" UNIQUE ("owner", "currency");
+ALTER TABLE "accounts" ADD CONSTRAINT "owner_account_type" UNIQUE ("owner", "account_type");
