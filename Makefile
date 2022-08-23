@@ -16,14 +16,21 @@ bash:
 migrateup:
 	docker run -v /Users/emeruche/Practice/go-bank-api/db/migrations:/migrations --network host migrate/migrate -path=/migrations/ -database "postgresql://postgres:postgres@localhost:5432/go_simple_bank?sslmode=disable" up
 
+migrateup_last:
+	docker run -v /Users/emeruche/Practice/go-bank-api/db/migrations:/migrations --network host migrate/migrate -path=/migrations/ -database "postgresql://postgres:postgres@localhost:5432/go_simple_bank?sslmode=disable" up 1
+
 migratedown:
+	docker run -v /Users/emeruche/Practice/go-bank-api/db/migrations:/migrations --network host migrate/migrate -path=/migrations/ -database "postgresql://postgres:postgres@localhost:5432/go_simple_bank?sslmode=disable" down -all
+
+
+migratedown_last:
 	docker run -v /Users/emeruche/Practice/go-bank-api/db/migrations:/migrations --network host migrate/migrate -path=/migrations/ -database "postgresql://postgres:postgres@localhost:5432/go_simple_bank?sslmode=disable" down 1
 
 ci_migrateup:
 	migrate  -path db/migrations/ -database "postgresql://postgres:postgres@localhost:5432/go_simple_bank?sslmode=disable" -verbose up
 
 ci_migratedown:
-	migrate  -path db/migrations/ -database "postgresql://postgres:postgres@localhost:5432/go_simple_bank?sslmode=disable" -verbose down
+	migrate  -path db/migrations/ -database "postgresql://postgres:postgres@localhost:5432/go_simple_bank?sslmode=disable" -verbose down -all
 
 
 sqlc_init:
@@ -41,4 +48,4 @@ server:
 mock:
 	mockgen -destination db/mock/store.go --package mockdb github.com/uchennaemeruche/go-bank-api/db/sqlc Store
 
-.PHONY:	postgres createdb dropdb psql bash migrateup migratedown sqlcinit sqlc_generate server mock
+.PHONY:	postgres createdb dropdb psql bash migrateup migrateup_last migratedown migratedown_last sqlcinit sqlc_generate server mock
