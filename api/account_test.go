@@ -131,12 +131,13 @@ func TestCreateAccountApi(t *testing.T) {
 	}{
 		{
 			name: "OK",
-			body: gin.H{"currency": account.Currency, "owner": account.Owner},
+			body: gin.H{"currency": account.Currency, "owner": account.Owner, "account_type": account.AccountType},
 			buildStubs: func(store *mockdb.MockStore) {
 				arg := db.CreateAccountParams{
-					Owner:    account.Owner,
-					Balance:  0,
-					Currency: account.Currency,
+					Owner:       account.Owner,
+					Balance:     0,
+					Currency:    account.Currency,
+					AccountType: account.AccountType,
 				}
 				store.EXPECT().
 					CreateAccount(gomock.Any(), gomock.Eq(arg)).
@@ -150,7 +151,7 @@ func TestCreateAccountApi(t *testing.T) {
 		},
 		{
 			name: "InternalError",
-			body: gin.H{"currency": account.Currency, "owner": account.Owner},
+			body: gin.H{"currency": account.Currency, "owner": account.Owner, "account_type": account.AccountType},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
 					CreateAccount(gomock.Any(), gomock.Any()).
@@ -163,7 +164,7 @@ func TestCreateAccountApi(t *testing.T) {
 		},
 		{
 			name: "InvalidCurrency",
-			body: gin.H{"currency": "invalid", "owner": account.Owner},
+			body: gin.H{"currency": "invalid", "owner": account.Owner, "account_type": account.AccountType},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
 					CreateAccount(gomock.Any(), gomock.Any()).
@@ -206,10 +207,11 @@ func TestCreateAccountApi(t *testing.T) {
 
 func randomAccount() db.Account {
 	return db.Account{
-		ID:       util.RandomInt(1, 1000),
-		Owner:    util.RandomOwner(),
-		Balance:  util.RandomMoney(),
-		Currency: util.RandomCurrency(),
+		ID:          util.RandomInt(1, 1000),
+		Owner:       util.RandomOwner(),
+		Balance:     util.RandomMoney(),
+		Currency:    util.RandomCurrency(),
+		AccountType: util.RandomAccountType(),
 	}
 }
 
