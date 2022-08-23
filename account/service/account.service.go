@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/uchennaemeruche/go-bank-api/api/util"
+	api "github.com/uchennaemeruche/go-bank-api/api/util"
 	db "github.com/uchennaemeruche/go-bank-api/db/sqlc"
 )
 
@@ -44,7 +44,7 @@ func (s *service) GetOne(id int64) (db.Account, error) {
 	acct, err := s.store.GetAccount(context.Background(), id)
 
 	if err == sql.ErrNoRows {
-		err = &util.RequestError{
+		err = &api.RequestError{
 			Code: 404,
 			Err:  errors.New("no record found with the given ID"),
 		}
