@@ -11,7 +11,7 @@ import (
 
 type AccountService interface {
 	// Validate()
-	Create(owner, currency string) (db.Account, error)
+	Create(owner, currency, account_type string) (db.Account, error)
 	GetOne(id int64) (db.Account, error)
 	ListAccount(pageSize, pageId int32) ([]db.Account, error)
 	UpdateAccount(id, balance int64) (db.Account, error)
@@ -28,12 +28,13 @@ func NewAccountService(store db.Store) AccountService {
 	}
 }
 
-func (s *service) Create(owner, currency string) (db.Account, error) {
+func (s *service) Create(owner, currency, account_type string) (db.Account, error) {
 
 	arg := db.CreateAccountParams{
-		Owner:    owner,
-		Currency: currency,
-		Balance:  0,
+		Owner:       owner,
+		Currency:    currency,
+		Balance:     0,
+		AccountType: account_type,
 	}
 
 	return s.store.CreateAccount(context.Background(), arg)
