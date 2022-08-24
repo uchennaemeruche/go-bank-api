@@ -5,7 +5,9 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 	accountRoutes "github.com/uchennaemeruche/go-bank-api/account/routes"
+	api "github.com/uchennaemeruche/go-bank-api/api/util"
 	transferRoutes "github.com/uchennaemeruche/go-bank-api/transfer/routes"
+	userRoutes "github.com/uchennaemeruche/go-bank-api/user/routes"
 
 	db "github.com/uchennaemeruche/go-bank-api/db/sqlc"
 )
@@ -22,12 +24,14 @@ func NewServer(store db.Store) *Server {
 	router := gin.Default()
 
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		v.RegisterValidation("currency", validCurrency)
+		v.RegisterValidation("currency", api.ValidCurrency)
 	}
 
 	accountRoutes.Init(router, store)
 
 	transferRoutes.Init(router, store)
+
+	userRoutes.Init(*router, store)
 
 	server.Router = router
 
