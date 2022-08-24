@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -53,6 +54,7 @@ func (h *handler) CreateUser(ctx *gin.Context) {
 
 	user, err := h.service.Create(req.Username, hashedPassword, req.FullName, req.Email)
 	if err != nil {
+		fmt.Println("ERR HERE:", err)
 		if err.(*api.RequestError).Code == 403 {
 			ctx.JSON(http.StatusForbidden, api.ErrorResponse(err))
 			return
