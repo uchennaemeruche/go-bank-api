@@ -28,7 +28,7 @@ func NewJWTMaker(secretKey string) (Maker, error) {
 func (maker *JWTMaker) CreateToken(username string, duration time.Duration) (string, error) {
 	payload, err := NewPayload(username, duration)
 	if err != nil {
-		return "nil", err
+		return "", err
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, payload)
