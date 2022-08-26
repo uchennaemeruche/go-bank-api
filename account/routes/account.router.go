@@ -7,9 +7,9 @@ import (
 	db "github.com/uchennaemeruche/go-bank-api/db/sqlc"
 )
 
-func Init(router *gin.Engine, store db.Store) {
+func Init(router *gin.Engine, store db.Store, authMiddleware gin.HandlerFunc) {
 
-	r := router.Group("/accounts")
+	r := router.Group("/accounts").Use(authMiddleware)
 
 	accountService := service.NewAccountService(store)
 
