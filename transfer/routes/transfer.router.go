@@ -7,8 +7,8 @@ import (
 	"github.com/uchennaemeruche/go-bank-api/transfer/service"
 )
 
-func Init(router *gin.Engine, store db.Store) {
-	r := router.Group("/transfers")
+func Init(router *gin.Engine, store db.Store, authMiddleware gin.HandlerFunc) {
+	r := router.Group("/transfers").Use(authMiddleware)
 
 	service := service.NewTransferService(store)
 	handler := handler.NewTransferHandler(service)
