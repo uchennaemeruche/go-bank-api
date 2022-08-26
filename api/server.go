@@ -40,9 +40,11 @@ func NewServer(config util.Config, store db.Store) (*Server, error) {
 		v.RegisterValidation("currency", api.ValidCurrency)
 	}
 
-	accountRoutes.Init(router, store)
+	router.Use()
 
-	transferRoutes.Init(router, store)
+	accountRoutes.Init(router, store, authMiddleware(tokenMaker))
+
+	transferRoutes.Init(router, store, authMiddleware(tokenMaker))
 
 	userRoutes.Init(*router, store, tokenMaker, config)
 
