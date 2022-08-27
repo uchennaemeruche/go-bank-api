@@ -1,11 +1,14 @@
 package handler
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	api "github.com/uchennaemeruche/go-bank-api/api/util"
+	db "github.com/uchennaemeruche/go-bank-api/db/sqlc"
+	"github.com/uchennaemeruche/go-bank-api/token"
 	"github.com/uchennaemeruche/go-bank-api/transfer"
 	"github.com/uchennaemeruche/go-bank-api/transfer/service"
 )
@@ -31,10 +34,19 @@ func (h *handler) CreateTransfer(ctx *gin.Context) {
 		return
 	}
 
-	if !h.validAcount(ctx, input.FromAccountID, input.Currency) {
+	account, isValid := h.validAcount(ctx, input.FromAccountID, input.Currency)
+	if !isValid {
 		return
 	}
-	if !h.validAcount(ctx, input.ToAccountID, input.Currency) {
+
+	authPayload := ctx.MustGet(api.AuthPayloadKey).(*token.Payload)
+	if authPayload.Username != account.Owner {
+		ctx.JSON(http.StatusUnauthorized, api.ErrorResponse(errors.New("drawing account does not belong to the currently logged in user")))
+		return
+	}
+
+	// _, isValid = h.validAcount(ctx, input.ToAccountID, input.Currency)
+	if _, isValid = h.validAcount(ctx, input.ToAccountID, input.Currency); !isValid {
 		return
 	}
 
@@ -46,24 +58,24 @@ func (h *handler) CreateTransfer(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, result)
 }
 
-func (h *handler) validAcount(ctx *gin.Context, accountId int64, currency string) bool {
+func (h *handler) validAcount(ctx *gin.Context, accountId int64, currency string) (db.Account, bool) {
 	account, err := h.service.ValidAccount(accountId, currency)
 	if err != nil {
 		if err.(*api.RequestError).Code == 404 {
 			ctx.JSON(http.StatusNotFound, api.ErrorResponse(err))
-			return false
+			return account, false
 		}
 
 		ctx.JSON(http.StatusInternalServerError, api.ErrorResponse(err))
-		return false
+		return account, false
 	}
 
 	if account.Currency != currency {
 		err := fmt.Errorf("account [%d] currency mismatch: %s vs %s", accountId, account.Currency, currency)
 		ctx.JSON(http.StatusBadRequest, api.ErrorResponse(err))
-		return false
+		return account, false
 	}
 
-	return true
+	return account, true
 
 }
