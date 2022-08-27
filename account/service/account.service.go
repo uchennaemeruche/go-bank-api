@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"log"
+	"fmt"
 
 	"github.com/lib/pq"
 	api "github.com/uchennaemeruche/go-bank-api/api/util"
@@ -43,13 +43,13 @@ func (s *service) Create(owner, currency, account_type string) (db.Account, erro
 
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok {
-			log.Println(pqErr.Code.Name())
 			switch pqErr.Code.Name() {
 			case "unique_violation", "foreign_key_violation":
-				err = &api.RequestError{
-					Code: 403,
-					Err:  err,
-				}
+				err = fmt.Errorf("with %w", &api.RequestError{Code: 403, Err: err})
+				// err = &api.RequestError{
+				// 	Code: 403,
+				// 	Err:  err,
+				// }
 
 			}
 		}
