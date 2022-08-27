@@ -45,8 +45,13 @@ func (h *handler) GetAccount(ctx *gin.Context) {
 
 	account, err := h.service.GetOne(uri.ID)
 	if err != nil {
-		if err.(*api.RequestError).Code == 404 {
-			ctx.JSON(http.StatusNotFound, api.ErrorResponse(err))
+		// if err.(*api.RequestError).Code == 404 {
+		// 	ctx.JSON(http.StatusNotFound, api.ErrorResponse(err))
+		// 	return
+		// }
+		target := &api.RequestError{}
+		if errors.As(err, &target) {
+			ctx.JSON(http.StatusForbidden, api.ErrorResponse(err))
 			return
 		}
 
@@ -75,10 +80,17 @@ func (h *handler) CreateAccount(ctx *gin.Context) {
 
 	account, err := h.service.Create(authPayload.Username, input.Currency, input.AccountType)
 	if err != nil {
-		if err.(*api.RequestError).Code == 403 {
+
+		target := &api.RequestError{}
+		if errors.As(err, &target) {
 			ctx.JSON(http.StatusForbidden, api.ErrorResponse(err))
 			return
 		}
+
+		// if err.(*api.RequestError).Code == 403 {
+		// 	ctx.JSON(http.StatusForbidden, api.ErrorResponse(err))
+		// 	return
+		// }
 
 		ctx.JSON(http.StatusInternalServerError, api.ErrorResponse(err))
 		return
