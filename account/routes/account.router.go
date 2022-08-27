@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/uchennaemeruche/go-bank-api/account/handler"
 	"github.com/uchennaemeruche/go-bank-api/account/service"
+
 	db "github.com/uchennaemeruche/go-bank-api/db/sqlc"
 )
 
