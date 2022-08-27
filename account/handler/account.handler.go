@@ -50,8 +50,8 @@ func (h *handler) GetAccount(ctx *gin.Context) {
 		// 	return
 		// }
 		target := &api.RequestError{}
-		if errors.As(err, &target) && target.Code == 404 {
-			ctx.JSON(http.StatusForbidden, api.ErrorResponse(err))
+		if errors.As(err, &target) {
+			ctx.JSON(http.StatusNotFound, api.ErrorResponse(err))
 			return
 		}
 
@@ -82,7 +82,7 @@ func (h *handler) CreateAccount(ctx *gin.Context) {
 	if err != nil {
 
 		target := &api.RequestError{}
-		if errors.As(err, &target) && target.Code == 403 {
+		if errors.As(err, &target) {
 			ctx.JSON(http.StatusForbidden, api.ErrorResponse(err))
 			return
 		}
