@@ -51,11 +51,8 @@ func EqCreateUserParams(arg db.CreateUserParams, password string) gomock.Matcher
 }
 
 func TestCreateUser(t *testing.T) {
-	password := util.RandomString(6)
-	hashedPassword, err := util.HashPassword(password)
-	require.NoError(t, err)
 
-	user := randomUser(hashedPassword)
+	user, password := randomUser(t)
 
 	testCases := []struct {
 		name          string
@@ -157,14 +154,18 @@ func TestCreateUser(t *testing.T) {
 
 }
 
-func randomUser(hashedPassword string) db.User {
+func randomUser(t *testing.T) (user db.User, password string) {
 
-	return db.User{
+	password = util.RandomString(6)
+	hashedPassword, err := util.HashPassword(password)
+	require.NoError(t, err)
+	user = db.User{
 		Username:       util.RandomOwner(),
 		HashedPassword: hashedPassword,
 		FullName:       util.RandomOwner(),
 		Email:          util.RandomEmail(),
 	}
+	return
 }
 
 func requireBodyMatchUser(t *testing.T, body *bytes.Buffer, user db.User) {
