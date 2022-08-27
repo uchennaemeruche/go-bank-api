@@ -15,7 +15,7 @@ type AccountService interface {
 	// Validate()
 	Create(owner, currency, account_type string) (db.Account, error)
 	GetOne(id int64) (db.Account, error)
-	ListAccount(pageSize, pageId int32) ([]db.Account, error)
+	ListAccount(owner string, pageSize, pageId int32) ([]db.Account, error)
 	UpdateAccount(id, balance int64) (db.Account, error)
 	DeleteAccount(id int64) error
 }
@@ -73,8 +73,9 @@ func (s *service) GetOne(id int64) (db.Account, error) {
 	return acct, err
 }
 
-func (s *service) ListAccount(pageSize, pageId int32) (accounts []db.Account, err error) {
+func (s *service) ListAccount(owner string, pageSize, pageId int32) (accounts []db.Account, err error) {
 	arg := db.ListAccountsParams{
+		Owner:  owner,
 		Limit:  pageSize,
 		Offset: (pageId - 1) * pageSize,
 	}
