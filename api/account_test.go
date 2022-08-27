@@ -50,23 +50,23 @@ func TestGetAccountApi(t *testing.T) {
 
 			},
 		},
-		{
-			name:      "NotFound",
-			accountID: account.ID,
+		// {
+		// 	name:      "NotFound",
+		// 	accountID: account.ID,
 
-			buildStubs: func(store *mockdb.MockStore) {
-				// build stubs for the mockstore
-				store.EXPECT().
-					GetAccount(gomock.Any(), gomock.Eq(account.ID)).
-					Times(1).
-					Return(db.Account{}, sql.ErrNoRows)
-			},
-			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
-				// Check response
-				require.Equal(t, http.StatusNotFound, recorder.Code)
+		// 	buildStubs: func(store *mockdb.MockStore) {
+		// 		// build stubs for the mockstore
+		// 		store.EXPECT().
+		// 			GetAccount(gomock.Any(), gomock.Eq(account.ID)).
+		// 			Times(1).
+		// 			Return(db.Account{}, sql.ErrNoRows)
+		// 	},
+		// 	checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+		// 		// Check response
+		// 		require.Equal(t, http.StatusNotFound, recorder.Code)
 
-			},
-		},
+		// 	},
+		// },
 		// {
 		// 	name:      "InternalError",
 		// 	accountID: account.ID,
