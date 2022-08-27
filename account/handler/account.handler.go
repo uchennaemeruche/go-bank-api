@@ -9,6 +9,7 @@ import (
 	"github.com/uchennaemeruche/go-bank-api/account/entity"
 	"github.com/uchennaemeruche/go-bank-api/account/service"
 	api "github.com/uchennaemeruche/go-bank-api/api/util"
+	"github.com/uchennaemeruche/go-bank-api/token"
 )
 
 type AccountHandler interface {
@@ -53,6 +54,13 @@ func (h *handler) GetAccount(ctx *gin.Context) {
 		return
 	}
 
+	authPayload := ctx.MustGet(api.AuthPayloadKey).(*token.Payload)
+
+	if account.Owner != authPayload.Username {
+		ctx.JSON(http.StatusUnauthorized, api.ErrorResponse(errors.New("account does not belong to the user")))
+		return
+	}
+
 	ctx.JSON(http.StatusOK, account)
 }
 func (h *handler) CreateAccount(ctx *gin.Context) {
@@ -62,7 +70,10 @@ func (h *handler) CreateAccount(ctx *gin.Context) {
 		return
 	}
 
-	account, err := h.service.Create(input.Owner, input.Currency, input.AccountType)
+	// Get Details of Logged in user that was set by the middleware
+	authPayload := ctx.MustGet(api.AuthPayloadKey).(*token.Payload)
+
+	account, err := h.service.Create(authPayload.Username, input.Currency, input.AccountType)
 	if err != nil {
 		if err.(*api.RequestError).Code == 403 {
 			ctx.JSON(http.StatusForbidden, api.ErrorResponse(err))
@@ -88,7 +99,9 @@ func (h *handler) ListAccount(ctx *gin.Context) {
 		return
 	}
 
-	accounts, err := h.service.ListAccount(input.PageSize, input.PageId)
+	authPayload := ctx.MustGet(api.AuthPayloadKey).(*token.Payload)
+
+	accounts, err := h.service.ListAccount(authPayload.Username, input.PageSize, input.PageId)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, api.ErrorResponse(err))
 		return
@@ -119,6 +132,24 @@ func (h *handler) UpdateAccount(ctx *gin.Context) {
 		return
 	}
 
+	accountOwner, err := h.service.GetOne(uri.ID)
+
+	if err != nil {
+		if err.(*api.RequestError).Code == 404 {
+			ctx.JSON(http.StatusNotFound, api.ErrorResponse(err))
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, api.ErrorResponse(err))
+		return
+	}
+
+	authPayload := ctx.MustGet(api.AuthPayloadKey).(*token.Payload)
+
+	if accountOwner.Owner != authPayload.Username {
+		ctx.JSON(http.StatusUnauthorized, api.ErrorResponse(errors.New("account does not belong to the user")))
+		return
+	}
+
 	account, err := h.service.UpdateAccount(uri.ID, input.Balance)
 
 	if err != nil {
@@ -126,7 +157,6 @@ func (h *handler) UpdateAccount(ctx *gin.Context) {
 			ctx.JSON(http.StatusNotFound, api.ErrorResponse(err))
 			return
 		}
-
 		ctx.JSON(http.StatusInternalServerError, api.ErrorResponse(err))
 		return
 	}
@@ -146,7 +176,23 @@ func (h *handler) DeleteAccount(ctx *gin.Context) {
 		return
 	}
 
-	err := h.service.DeleteAccount(uri.ID)
+	account, err := h.service.GetOne(uri.ID)
+	if err != nil {
+		if err.(*api.RequestError).Code == 404 {
+			ctx.JSON(http.StatusNotFound, api.ErrorResponse(err))
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, api.ErrorResponse(err))
+		return
+	}
+
+	authPayload := ctx.MustGet(api.AuthPayloadKey).(*token.Payload)
+	if account.Owner != authPayload.Username {
+		ctx.JSON(http.StatusUnauthorized, api.ErrorResponse(errors.New("account does not belong to the user")))
+		return
+	}
+
+	err = h.service.DeleteAccount(uri.ID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, api.ErrorResponse(err))
 		return
