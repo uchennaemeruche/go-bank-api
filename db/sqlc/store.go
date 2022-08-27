@@ -72,10 +72,9 @@ func (store *SQLStore) TransferTx(ctx context.Context, arg TransferTxParams) (Tr
 	err := store.execTx(ctx, func(q *Queries) error {
 		var err error
 
-		txName := ctx.Value(txKey)
+		// txName := ctx.Value(txKey)
 
 		// 1. Create a Transfer record
-		fmt.Println(txName, "Create Transfer")
 		result.Transfer, err = q.CreateTransfer(ctx, CreateTransferParams{
 			FromAccountID: arg.FromAccountID,
 			ToAccountID:   arg.ToAccountId,
@@ -86,7 +85,6 @@ func (store *SQLStore) TransferTx(ctx context.Context, arg TransferTxParams) (Tr
 		}
 
 		// 2. Add Account Transaction entry 1
-		fmt.Println(txName, "Create Transaction 1")
 		result.FromTransaction, err = q.CreateTransaction(ctx, CreateTransactionParams{
 			AccountID: arg.FromAccountID,
 			Amount:    -arg.Amount,
@@ -96,7 +94,6 @@ func (store *SQLStore) TransferTx(ctx context.Context, arg TransferTxParams) (Tr
 		}
 
 		// 2. Add Account Transaction counter entry 2
-		fmt.Println(txName, "Create Transaction 2")
 		result.ToTransaction, err = q.CreateTransaction(ctx, CreateTransactionParams{
 			AccountID: arg.ToAccountId,
 			Amount:    arg.Amount,
