@@ -62,3 +62,22 @@ Since I opted for alpine docker image, I had to add curl installation in the doc
 Also, the start up file(start.sh) was set to run by /bin/sh since the bash shell is not available in the alpine image.
 
 set -e -- To make sure the script exists immediately if a command returns a non-zero status.
+
+
+## Secret Manager
+This project uses AWS Secret Manger to store and manage passwords and other credentials.
+The Secret Manager has a 30-day free tier which is sufficient to test out this feature.
+To load the secrets from the secret manager and save it in app.env during deployemnt, I used the jp processor alongside the aws cli. (see 'Load secrets and save to app.env in production server' step in deployment workflow) 
+
+
+## Database
+For this project, we'll use the free tier AWS RDS(Postgresql) and a randomly generated password for the database.
+If the password is misplaced, you can modify the instance and set a new password.
+If/when you change the DB password, remember to update the DB source secret key in the secret manager.
+
+
+## Tokenization
+To generate a secured TOKEN_SYMMETRIC_KEY, I used openssl as follows:
+``` 
+    openssl rand -hex 64 | head -c 32
+```
