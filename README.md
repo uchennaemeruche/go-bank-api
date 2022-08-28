@@ -54,3 +54,11 @@ Create a Dockerfile to build the Golang application -- see Dockerfile.
 To solve this, we need to connect both the App container and the Database container to the same app. That way, they can see each other and interact easily.
 
 In this project, I connected the simplebank App container to the network created during initialization of the progressdb container (see docker-compose.yml)
+
+
+
+Since I opted for alpine docker image, I had to add curl installation in the docker file.
+
+Also, the start up file(start.sh) was set to run by /bin/sh since the bash shell is not available in the alpine image.
+
+set -e -- To make sure the script exists immediately if a command returns a non-zero status.
