@@ -1,6 +1,6 @@
 version: "3"
 services:
-  postgresdb:
+  postgres:
     image: postgres:12-alpine
     environment:
       POSTGRES_DB: go_simple_bank
@@ -16,10 +16,10 @@ services:
     ports:
       - 8080:8080
     environment:
-      - DB_SOURCE=postgresql://postgres:postgres@postgresdb:5432/go_simple_bank?sslmode=disable
+      - DB_SOURCE=postgresql://postgres:postgres@postgres:5432/go_simple_bank?sslmode=disable
     depends_on:
-      - postgresdb
-    entrypoint: ["/app/wait-for.sh", "postgresssrv:5432", "--", "/app/start.sh"]
+      - postgres
+    entrypoint: ["/app/wait-for.sh", "postgres:5432", "--", "/app/start.sh"]
     command: ["/app/main"]
     
     

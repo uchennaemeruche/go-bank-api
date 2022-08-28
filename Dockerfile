@@ -1,6 +1,6 @@
 
 # # 1.18.4-alpine3.16
-FROM golang:1.18-alpine3.16 as buildStage
+FROM golang:1.18-alpine3.16 as buildstage
 WORKDIR /app
 COPY . .
 RUN go build -o main main.go
@@ -10,8 +10,8 @@ RUN curl -L https://github.com/golang-migrate/migrate/releases/download/v4.15.2/
 
 FROM alpine:3.16
 WORKDIR /app
-COPY --from=buildStage /app/main .
-COPY  --from=builderStage /app/migrate .
+COPY --from=buildstage /app/main .
+COPY  --from=buildstage /app/migrate .
 COPY app.env .
 COPY start.sh .
 COPY wait-for.sh .
