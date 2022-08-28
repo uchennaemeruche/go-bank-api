@@ -25,7 +25,7 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Load secrets and save to app.env
+      - name: Load secrets and save to app.env in production server
         run: aws secretsmanager get-secret-value --secret-id simplebank_secret --query SecretString --output text | jq -r 'to_entries|map("\(.key)=\(.value)")|.[]' > app.env 
 
       - name: Build, Tag, and push docker image to registry
