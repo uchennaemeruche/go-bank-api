@@ -18,6 +18,7 @@ type Querier interface {
 	CreateTransfer(ctx context.Context, arg CreateTransferParams) (Transfer, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteAccount(ctx context.Context, id int64) error
+	ExpireSession(ctx context.Context, arg ExpireSessionParams) error
 	GetAccount(ctx context.Context, id int64) (Account, error)
 	GetAccountForUpdate(ctx context.Context, id int64) (Account, error)
 	GetSession(ctx context.Context, id uuid.UUID) (Session, error)
@@ -27,7 +28,9 @@ type Querier interface {
 	ListAccounts(ctx context.Context, arg ListAccountsParams) ([]Account, error)
 	ListTransactions(ctx context.Context, arg ListTransactionsParams) ([]Transaction, error)
 	ListTransfers(ctx context.Context, arg ListTransfersParams) ([]Transfer, error)
+	ToggleBlockSession(ctx context.Context, arg ToggleBlockSessionParams) error
 	UpdateAccount(ctx context.Context, arg UpdateAccountParams) (Account, error)
+	UpdateSession(ctx context.Context, arg UpdateSessionParams) (Session, error)
 }
 
 var _ Querier = (*Queries)(nil)

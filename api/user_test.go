@@ -242,6 +242,19 @@ func TestLoginUser(t *testing.T) {
 	}
 }
 
+// func randomToken(t *testing.T) (string, *token.Payload) {
+// 	user, _ := randomUser(t)
+// 	tokenMaker, err := token.NewPasetoMaker("12345678901234567890123456789012")
+// 	require.NoError(t, err)
+
+// 	newToken, tokenPayload, err := tokenMaker.CreateToken(user.Username, time.Hour)
+// 	require.NoError(t, err)
+// 	require.NotEmpty(t, newToken)
+// 	require.NotEmpty(t, tokenPayload)
+
+// 	return newToken, tokenPayload
+// }
+
 func randomUser(t *testing.T) (user db.User, password string) {
 
 	password = util.RandomString(6)
