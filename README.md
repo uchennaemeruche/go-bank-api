@@ -67,7 +67,7 @@ set -e -- To make sure the script exists immediately if a command returns a non-
 ## Secret Manager
 This project uses AWS Secret Manger to store and manage passwords and other credentials.
 The Secret Manager has a 30-day free tier which is sufficient to test out this feature.
-To load the secrets from the secret manager and save it in app.env during deployemnt, I used the jp processor alongside the aws cli. (see 'Load secrets and save to app.env in production server' step in deployment workflow) 
+To load the secrets from the secret manager and save it in app.env during deployemnt, I used the jq processor alongside the aws cli. (see 'Load secrets and save to app.env in production server' step in deployment workflow) 
 
 
 ## Database

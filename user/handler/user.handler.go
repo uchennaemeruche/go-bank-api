@@ -8,23 +8,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	api "github.com/uchennaemeruche/go-bank-api/api/util"
-	db "github.com/uchennaemeruche/go-bank-api/db/sqlc"
 	"github.com/uchennaemeruche/go-bank-api/user/service"
 	"github.com/uchennaemeruche/go-bank-api/util"
 )
-
-type UserResponse struct {
-	Username          string    `json:"username"`
-	FullName          string    `json:"full_name"`
-	Email             string    `json:"email"`
-	PasswordChangedAt time.Time `json:"password_changed_at"`
-	CreatedAt         time.Time `json:"created_at"`
-}
-
-type LoginResponse struct {
-	AccessToken string `json:"access_token"`
-	User        UserResponse
-}
 
 type UserHandler interface {
 	CreateUser(*gin.Context)
@@ -40,16 +26,6 @@ func NewUserHandler(service service.UserService, config util.Config) UserHandler
 	return &handler{
 		service: service,
 		config:  config,
-	}
-}
-
-func NewUserResponse(user db.User) UserResponse {
-	return UserResponse{
-		Username:          user.Username,
-		FullName:          user.FullName,
-		Email:             user.Email,
-		PasswordChangedAt: user.PasswordChangedAt,
-		CreatedAt:         user.CreatedAt,
 	}
 }
 
@@ -85,7 +61,7 @@ func (h *handler) CreateUser(ctx *gin.Context) {
 		return
 	}
 
-	res := NewUserResponse(user)
+	res := service.NewUserResponse(user)
 
 	ctx.JSON(http.StatusOK, res)
 }
@@ -110,26 +86,30 @@ func (h *handler) LoginUser(ctx *gin.Context) {
 		return
 	}
 
-	accessTOken, user, err := h.service.LoginUser(req.Username, req.Password, h.config.AccessTokenDuration)
+	response, err := h.service.LoginUser(req.Username, req.Password, h.config.AccessTokenDuration, h.config.RefreshTokenDuration)
 
 	if err != nil {
 		errCode := err.(*api.RequestError).Code
-		httpCode := 500
+		httpCode := http.StatusInternalServerError
 		if errCode == 404 {
 			httpCode = http.StatusNotFound
 		} else if errCode == 401 {
 			httpCode = http.StatusUnauthorized
-		} else {
-			httpCode = http.StatusInternalServerError
 		}
 		ctx.JSON(httpCode, api.ErrorResponse(err))
 		return
 	}
 
-	rsp := LoginResponse{
-		AccessToken: accessTOken,
-		User:        NewUserResponse(user),
-	}
+	// rsp := response{
+	// 	SessionID: sess,
+	// 	AccessToken:  accessToken,
+	// 	RefreshToken: refreshToken,
+	// 	User:         NewUserResponse(user),
+	// }
 
-	ctx.JSON(http.StatusOK, rsp)
+	// user := NewUserResponse(response.User)
+
+	// newRes =
+
+	ctx.JSON(http.StatusOK, response)
 }
