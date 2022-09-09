@@ -9,6 +9,6 @@ import "time"
 
 // Defines functions that different Token providers will implement.
 type Maker interface {
-	CreateToken(username string, duration time.Duration) (token string, err error)
+	CreateToken(username string, duration time.Duration) (token string, payload *Payload, err error)
 	VerifyToken(token string) (*Payload, error)
 }
