@@ -15,6 +15,7 @@ import (
 type UserHandler interface {
 	CreateUser(*gin.Context)
 	LoginUser(ctx *gin.Context)
+	RenewAccessToken(ctx *gin.Context)
 }
 
 type handler struct {
@@ -86,7 +87,7 @@ func (h *handler) LoginUser(ctx *gin.Context) {
 		return
 	}
 
-	response, err := h.service.LoginUser(req.Username, req.Password, h.config.AccessTokenDuration, h.config.RefreshTokenDuration)
+	response, err := h.service.LoginUser(req.Username, req.Password, ctx.Request.UserAgent(), ctx.ClientIP(), h.config.AccessTokenDuration, h.config.RefreshTokenDuration)
 
 	if err != nil {
 		errCode := err.(*api.RequestError).Code
@@ -100,16 +101,35 @@ func (h *handler) LoginUser(ctx *gin.Context) {
 		return
 	}
 
-	// rsp := response{
-	// 	SessionID: sess,
-	// 	AccessToken:  accessToken,
-	// 	RefreshToken: refreshToken,
-	// 	User:         NewUserResponse(user),
-	// }
+	ctx.JSON(http.StatusOK, response)
+}
 
-	// user := NewUserResponse(response.User)
+func (h *handler) RenewAccessToken(ctx *gin.Context) {
+	var req service.RenewAcesTokenReq
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		var validationErrs validator.ValidationErrors
+		if errors.As(err, &validationErrs) {
+			ctx.JSON(http.StatusBadRequest, api.FormatValidationErr(validationErrs))
+			return
+		}
+		ctx.JSON(http.StatusBadRequest, api.ErrorResponse(err))
+		return
+	}
 
-	// newRes =
+	response, err := h.service.GetNewAccessToken(req.RefreshToken, h.config.AccessTokenDuration)
+
+	if err != nil {
+		errCode := err.(*api.RequestError).Code
+		httpCode := http.StatusInternalServerError
+		if errCode == 404 {
+			httpCode = http.StatusNotFound
+		} else if errCode == 401 {
+			httpCode = http.StatusUnauthorized
+		}
+		ctx.JSON(httpCode, api.ErrorResponse(err))
+		return
+	}
 
 	ctx.JSON(http.StatusOK, response)
+
 }

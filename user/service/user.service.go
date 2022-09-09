@@ -30,9 +30,18 @@ type CreateUserReq struct {
 	FullName string `json:"full_name" binding:"required"`
 	Email    string `json:"email" binding:"required,email"`
 }
+
 type UserLoginReq struct {
 	Username string `json:"username" binding:"required,alphanum"`
 	Password string `json:"password" binding:"required,min=6"`
+}
+
+type RenewAcesTokenReq struct {
+	RefreshToken string `json:"refresh_token" binding:"required"`
+}
+type RenewAcesTokenResponse struct {
+	AccessToken          string    `json:"access_token"`
+	AccessTokenExpiresAt time.Time `json:"access_token_expires_at"`
 }
 
 type LoginResponse struct {
@@ -46,7 +55,8 @@ type LoginResponse struct {
 
 type UserService interface {
 	Create(username, hashedPassword, fullname, email string) (db.User, error)
-	LoginUser(username, password string, accessTokenDuration, refreshTokenDuration time.Duration) (res LoginResponse, err error)
+	LoginUser(username, password, userAgent, clientIp string, accessTokenDuration, refreshTokenDuration time.Duration) (res LoginResponse, err error)
+	GetNewAccessToken(refreshToken string, accessTokenDuration time.Duration) (RenewAcesTokenResponse, error)
 }
 
 type service struct {
@@ -128,7 +138,7 @@ func (s *service) GetUser(username string) (db.User, error) {
 	return user, err
 }
 
-func (s *service) LoginUser(username, password string, accessTokenDuration, refreshTokenDuration time.Duration) (LoginResponse, error) {
+func (s *service) LoginUser(username, password, userAgent, clientIp string, accessTokenDuration, refreshTokenDuration time.Duration) (LoginResponse, error) {
 	user, err := s.GetUser(username)
 	if err != nil {
 		return LoginResponse{}, err
@@ -167,12 +177,11 @@ func (s *service) LoginUser(username, password string, accessTokenDuration, refr
 		ID:           refreshTokenPayload.ID,
 		Username:     username,
 		RefreshToken: refreshToken,
-		UserAgent:    "",
-		ClientIp:     "",
+		UserAgent:    userAgent,
+		ClientIp:     clientIp,
 		IsBlocked:    false,
 		ExpiresAt:    refreshTokenPayload.ExpiredAt,
 	})
-
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok {
 			fmt.Println("Err Code", pqErr.Code)
@@ -194,5 +203,80 @@ func (s *service) LoginUser(username, password string, accessTokenDuration, refr
 	)
 
 	return loginRes, nil
+
+}
+
+func (s *service) GetNewAccessToken(refreshToken string, accessTokenDuration time.Duration) (RenewAcesTokenResponse, error) {
+	refreshPaylaod, err := s.tokenMaker.VerifyToken(refreshToken)
+	if err != nil {
+		err = &api.RequestError{
+			Code: 401,
+			Err:  err,
+		}
+		return RenewAcesTokenResponse{}, err
+	}
+
+	session, err := s.store.GetSession(context.Background(), refreshPaylaod.ID)
+	if err != nil {
+		fmt.Println("Session Error: ", err)
+		err = &api.RequestError{
+			Code: 500,
+			Err:  err,
+		}
+		if err.Error() == sql.ErrNoRows.Error() {
+			err = &api.RequestError{
+				Code: 404,
+				Err:  fmt.Errorf("session does not exist/ invalid session id"),
+			}
+		}
+		return RenewAcesTokenResponse{}, err
+	}
+
+	if session.IsBlocked {
+		err = &api.RequestError{
+			Code: 401,
+			Err:  fmt.Errorf("session is blocked, deactivated or inactive"),
+		}
+		return RenewAcesTokenResponse{}, err
+	}
+
+	if session.Username != refreshPaylaod.Username {
+		err = &api.RequestError{
+			Code: 401,
+			Err:  fmt.Errorf("incorrect session user passed"),
+		}
+		return RenewAcesTokenResponse{}, err
+	}
+
+	if session.RefreshToken != refreshToken {
+		err = &api.RequestError{
+			Code: 401,
+			Err:  fmt.Errorf("mismatched session token"),
+		}
+		return RenewAcesTokenResponse{}, err
+	}
+
+	if time.Now().After(session.ExpiresAt) {
+		err = &api.RequestError{
+			Code: 401,
+			Err:  fmt.Errorf("expired session"),
+		}
+		return RenewAcesTokenResponse{}, err
+	}
+
+	accessToken, accessTokenPayload, err := s.tokenMaker.CreateToken(refreshPaylaod.Username, accessTokenDuration)
+	if err != nil {
+		err = &api.RequestError{
+			Code: 500,
+			Err:  fmt.Errorf("an internal server error occured while creating user token"),
+		}
+		return RenewAcesTokenResponse{}, err
+	}
+
+	result := RenewAcesTokenResponse{
+		AccessToken:          accessToken,
+		AccessTokenExpiresAt: accessTokenPayload.ExpiredAt,
+	}
+	return result, nil
 
 }
