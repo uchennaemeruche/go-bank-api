@@ -16,6 +16,8 @@ type UserHandler interface {
 	CreateUser(*gin.Context)
 	LoginUser(ctx *gin.Context)
 	RenewAccessToken(ctx *gin.Context)
+	Logout(ctx *gin.Context)
+	ToggleBlockSession(ctx *gin.Context)
 }
 
 type handler struct {
@@ -131,5 +133,60 @@ func (h *handler) RenewAccessToken(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, response)
+}
 
+func (h *handler) Logout(ctx *gin.Context) {
+	var req service.DestroySessionReq
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		var validationErrs validator.ValidationErrors
+		if errors.As(err, &validationErrs) {
+			ctx.JSON(http.StatusBadRequest, api.FormatValidationErr(validationErrs))
+			return
+		}
+		ctx.JSON(http.StatusBadRequest, api.ErrorResponse(err))
+		return
+	}
+
+	isDestoyed, err := h.service.DestroySession(req.RefreshToken)
+	if err != nil || !isDestoyed {
+		if err != nil {
+			errCode := err.(*api.RequestError).Code
+			httpCode := http.StatusInternalServerError
+			if errCode == 401 {
+				httpCode = http.StatusUnauthorized
+			}
+			ctx.JSON(httpCode, api.ErrorResponse(err))
+			return
+		}
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "User logged out successfully"})
+
+}
+func (h *handler) ToggleBlockSession(ctx *gin.Context) {
+	var req service.ToggleSessionReq
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		var validationErrs validator.ValidationErrors
+		if errors.As(err, &validationErrs) {
+			ctx.JSON(http.StatusBadRequest, api.FormatValidationErr(validationErrs))
+			return
+		}
+		ctx.JSON(http.StatusBadRequest, api.ErrorResponse(err))
+		return
+	}
+
+	isDestoyed, err := h.service.ToggleBlockSession(req.RefreshToken, req.Status)
+	if err != nil || !isDestoyed {
+		if err != nil {
+			errCode := err.(*api.RequestError).Code
+			httpCode := http.StatusInternalServerError
+			if errCode == 401 {
+				httpCode = http.StatusUnauthorized
+			}
+			ctx.JSON(httpCode, api.ErrorResponse(err))
+			return
+		}
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "User session token blocked"})
 }

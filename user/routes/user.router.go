@@ -17,5 +17,7 @@ func Init(router gin.Engine, store db.Store, tokenMaker token.Maker, config util
 
 	r.POST("", handler.CreateUser)
 	r.POST("/login", handler.LoginUser)
-	r.POST("/token/renew", handler.RenewAccessToken)
+	r.POST("/session/renew", handler.RenewAccessToken)
+	r.POST("/session/destroy", handler.Logout)
+	r.POST("/session/block", handler.ToggleBlockSession)
 }

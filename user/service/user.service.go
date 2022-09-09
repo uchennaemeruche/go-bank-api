@@ -44,6 +44,14 @@ type RenewAcesTokenResponse struct {
 	AccessTokenExpiresAt time.Time `json:"access_token_expires_at"`
 }
 
+type DestroySessionReq struct {
+	RefreshToken string `json:"refresh_token" binding:"required"`
+}
+type ToggleSessionReq struct {
+	RefreshToken string `json:"refresh_token" binding:"required"`
+	Status       bool   `json:"status" binding:"required"`
+}
+
 type LoginResponse struct {
 	SessionID             uuid.UUID `json:"session_id"`
 	AccessToken           string    `json:"access_token"`
@@ -57,6 +65,8 @@ type UserService interface {
 	Create(username, hashedPassword, fullname, email string) (db.User, error)
 	LoginUser(username, password, userAgent, clientIp string, accessTokenDuration, refreshTokenDuration time.Duration) (res LoginResponse, err error)
 	GetNewAccessToken(refreshToken string, accessTokenDuration time.Duration) (RenewAcesTokenResponse, error)
+	DestroySession(refreshToken string) (bool, error)
+	ToggleBlockSession(refreshToken string, status bool) (bool, error)
 }
 
 type service struct {
@@ -278,5 +288,95 @@ func (s *service) GetNewAccessToken(refreshToken string, accessTokenDuration tim
 		AccessTokenExpiresAt: accessTokenPayload.ExpiredAt,
 	}
 	return result, nil
+
+}
+
+func (s *service) DestroySession(refreshToken string) (bool, error) {
+	refreshPayload, err := s.tokenMaker.VerifyToken(refreshToken)
+	if err != nil {
+		err = &api.RequestError{
+			Code: 401,
+			Err:  err,
+		}
+		return false, err
+	}
+
+	err = s.store.ExpireSession(context.Background(), db.ExpireSessionParams{
+		ID:        refreshPayload.ID,
+		ExpiresAt: time.Now(),
+	})
+
+	if err != nil {
+		err = &api.RequestError{
+			Code: 500,
+			Err:  fmt.Errorf("could not terminate current session. try again later"),
+		}
+		return false, err
+	}
+	return true, nil
+}
+
+func (s *service) ToggleBlockSession(refreshToken string, status bool) (bool, error) {
+
+	refreshPayload, err := s.tokenMaker.VerifyToken(refreshToken)
+	if err != nil {
+		err = &api.RequestError{
+			Code: 401,
+			Err:  err,
+		}
+		return false, err
+	}
+	session, err := s.store.GetSession(context.Background(), refreshPayload.ID)
+	if err != nil {
+		fmt.Println("Session Error: ", err)
+		err = &api.RequestError{
+			Code: 500,
+			Err:  err,
+		}
+		if err.Error() == sql.ErrNoRows.Error() {
+			err = &api.RequestError{
+				Code: 404,
+				Err:  fmt.Errorf("session does not exist/ invalid session id"),
+			}
+		}
+		return false, err
+	}
+
+	if session.Username != refreshPayload.Username {
+		err = &api.RequestError{
+			Code: 401,
+			Err:  fmt.Errorf("incorrect session user passed"),
+		}
+		return false, err
+	}
+
+	if session.RefreshToken != refreshToken {
+		err = &api.RequestError{
+			Code: 401,
+			Err:  fmt.Errorf("mismatched session token"),
+		}
+		return false, err
+	}
+
+	if time.Now().After(session.ExpiresAt) {
+		err = &api.RequestError{
+			Code: 401,
+			Err:  fmt.Errorf("expired session"),
+		}
+		return false, err
+	}
+
+	err = s.store.ToggleBlockSession(context.Background(), db.ToggleBlockSessionParams{
+		ID:        refreshPayload.ID,
+		IsBlocked: status,
+	})
+	if err != nil {
+		err = &api.RequestError{
+			Code: 500,
+			Err:  fmt.Errorf("could not block/unblock user at this time "),
+		}
+		return false, err
+	}
+	return true, nil
 
 }
